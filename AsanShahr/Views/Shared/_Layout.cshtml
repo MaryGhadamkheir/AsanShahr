@@ -1,0 +1,48 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title</title>
+    
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <script src="~/Scripts/modernizr-2.6.2.js"></script>
+    <link href="~/Content/Site.css" rel="stylesheet" type="text/css" />
+    <style>
+        .body {
+            padding-bottom: 0px !important;
+            padding-top: 0px !important;
+            direction:rtl;
+            font-family: '0 Yekan';
+        }
+        .asanshahrHeader {
+            padding-top: 15px;
+            padding-bottom: 15px;
+            background-color: #3f5b73;
+            text-align: center;
+            color: white;
+            font-size: 20px;
+        }
+    </style>
+
+</head>
+<body dir="rtl">
+    <div class="asanshahrHeader">
+        <span>آسان شهر</span>
+    </div>
+    <br />
+    <div class="container body-content">
+        @RenderBody()
+        <hr />
+        <footer>
+            <p>&copy; @DateTime.Now.Year - آسان شهر</p>
+        </footer>
+    </div>
+
+    
+
+    <script src="~/Scripts/jquery-1.10.2.min.js"></script>
+    <script src="~/Scripts/bootstrap.min.js"></script>
+
+</body>
+</html>

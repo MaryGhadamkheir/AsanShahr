@@ -1,0 +1,700 @@
+﻿
+@{
+    ViewBag.Title = "AsanShahr";
+}
+
+<script src="~/Scripts/jquery-3.4.1.min.js"></script>
+<script src="~/Scripts/knockout-3.5.1.js"></script>
+<script src="~/Scripts/knockout-3.5.1.debug.js"></script>
+<style>
+    .form-control{
+        height: 30px !important;
+        font-size: 12px !important;
+    }
+</style>
+<script>
+
+    try {
+        var TotalViewModel = {
+            DetailViewModel: ko.observable(null),
+        }
+        $(document).ready(function () {
+            function vm() {
+                var self = this;
+                /*======Main Page============================*/
+                {
+                    self.RealestateList = ko.observableArray([]);
+                    self.RealestatePageSize = ko.observable(20);
+                    self.RealestatePageIndex = ko.observable(1);
+                    self.RealestateCount = ko.observable('');
+                    self.RealestatePageCount = ko.observable(1);
+                    self.RealestatePageNumberList = ko.observableArray([]);
+                    self.getAllRealestates = function (keyName, backFunc) {
+                        $.ajax({
+                            type: "POST",
+                            async: true,
+                            contentType: 'application/json; charset=utf-8',
+                            url: '/Home/GetRealestatesList',
+                            data: ko.toJSON({
+                                pageSize: self.RealestatePageSize(),
+                                pageIndex: self.RealestatePageIndex(),
+                            }),
+                            success: function (rs) {
+                                if (rs.successful) {
+                                    backFunc({
+                                        key: keyName,
+                                        ok: true,
+                                        rc: rs.count,
+                                        pc: rs.pageCount,
+                                        lstR: rs.realestatesList,
+                                        errorString: rs.ErrorMessage
+                                    });
+                                }
+                                else {
+                                    backFunc({
+                                        key: keyName,
+                                        ok: false,
+                                        rc: rs.count,
+                                        pc: rs.pageCount,
+                                        lstR: rs.realestatesList,
+                                        errorString: rs.ErrorMessage
+                                    });
+                                }
+                               
+                            },
+                            error: function (jqXHR, textStatus, errorThrown) {
+                                backFunc({
+                                    key: keyName,
+                                    ok: false,
+                                    rc: rs.count,
+                                    pc: rs.pageCount,
+                                    lstR: rs.realestatesList,
+                                    errorString: 'خطا در فراخوانی متد بدست آوردن لیست املاک موجود!'
+                                });
+                            }
+                        })
+                    }
+                    self.RealestatePageIndex_Changed = function (r) {
+                        self.RealestatePageIndex(r);
+                        self.getAllRealestates('afterGetAllRealestate', afterExecuteMainPageMethod);
+                    }
+                    self.addRealestate_Click = function () {
+                        self.ResetSaveRealestateDiv();
+                        $('#divAddRealestate').modal('show');
+                    }
+                    self.imgEditRealestate_Click = function (row) {
+                        self.ResetSaveRealestateDiv();
+                        $.ajax({
+                            type: "POST",
+                            async: true,
+                            contentType: 'application/json; charset=utf-8',
+                            url: '/Home/GetRealestateByID',
+                            data: ko.toJSON({
+                                id: row.ID
+                            }),
+                            success: function (rs) {
+                                if (rs.successful) {
+                                    afterExecuteMainPageMethod({
+                                        ok: true,
+                                        key: 'afterGetRealestateDetail',
+                                        objR: rs.realestate,
+                                        lstOw: rs.lstOwners,
+                                        errorString: rs.ErrorMessage
+                                    });
+                                }
+                                else {
+                                    afterExecuteMainPageMethod({
+                                        ok: false,
+                                        key: 'afterGetRealestateDetail',
+                                        objR: rs.realestate,
+                                        lstOw: rs.lstOwners,
+                                        errorString: rs.ErrorMessage
+                                    });
+                                }
+                            },
+                            error: function (jqXHR, textStatus, errorThrown) {
+                                alert('خطا در ثبت متد ملک !');
+                            }
+                        })
+                    }
+                    self.imgDeleteRealestate_Click = function (row) {
+                        if (confirm('آیا از حذف ملک اطمینان دارید ؟')) {
+                            $.ajax({
+                                type: "POST",
+                                async: true,
+                                contentType: 'application/json; charset=utf-8',
+                                url: '/Home/DeleteRealestateByID',
+                                data: ko.toJSON({
+                                    rid: row.ID,
+                                }),
+                                success: function (rs) {
+                                    if (rs.success) {
+                                        alert('حذف با موفقیت انجام شد !');
+                                        self.RealestatePageIndex(1);
+                                        self.getAllRealestates('afterGetAllRealestate', afterExecuteMainPageMethod);
+                                    }
+                                    else {
+                                        alert(rs.error);
+                                    }
+                                },
+                                error: function (jqXHR, textStatus, errorThrown) {
+                                    alert('خطا در فراخوانی متد ملک موجود!');
+                                }
+                            })
+                        }
+                    }
+
+                    function afterExecuteMainPageMethod(data) {
+                        switch (data.key) {
+                            case 'afterGetAllRealestate':
+                                self.RealestateList([]);
+                                self.RealestatePageCount(0);
+                                self.RealestatePageNumberList([]);
+                                self.RealestateCount('');
+                                if (data.ok){
+                                    self.RealestateList(data.lstR);
+                                    self.RealestateCount('تعداد کل املاک :' + data.rc);
+                                    if (data.pc > 0) {
+                                        for (var i = 1; i <= data.pc; i++) {
+                                            self.RealestatePageNumberList.push(i);
+                                        }
+                                    }
+                                }
+                                else {
+                                    alert(data.errorString);
+                                }
+                                break;
+                            case 'afterGetRealestateDetail':
+                                if (data.ok) {
+                                    self.selectedID(data.objR.ID);
+                                    self.RegisterPlak(data.objR.RegisterPlak);
+                                    self.Title(data.objR.Title);
+                                    self.Address(data.objR.Address);
+                                    self.Area(data.objR.Area.toString());
+                                    self.isNorth(data.objR.IsNorth);
+                                    for (var i = 0; i < data.lstOw.length; i++) {
+                                        self.selectedOwnersList.push(data.lstOw[i]);
+                                    }
+                                    $('#divAddRealestate').modal('show');
+                                }
+                                else {
+
+                                }
+                                break;
+                        }
+                    }
+                }
+                /*======SaveRealestate============================*/
+                {
+                    self.errorDiv = ko.observable(false);
+                    self.errorText = ko.observable('');
+                    self.selectedID = ko.observable(0);
+                    self.RegisterPlak = ko.observable('');
+                    self.Title = ko.observable('');
+                    self.Address = ko.observable('');
+                    self.Area = ko.observable('');
+                    self.isNorth = ko.observable(false);
+                    self.selectedOwnersList = ko.observableArray([]);
+                    self.deletedOwnersIdList = ko.observableArray([]);
+
+                    self.ResetSaveRealestateDiv = function () {
+                        self.errorDiv(false);
+                        self.errorText('');
+                        self.selectedID(0);
+                        self.RegisterPlak('');
+                        self.Title('');
+                        self.Address('');
+                        self.Area('');
+                        self.isNorth(false);
+                        self.selectedOwnersList([]);
+                        self.deletedOwnersIdList([]);
+                    }
+                    self.btnAddOwner_Click = function () {
+                        debugger;
+                        if (self.isFirstCallAllOwner()) {
+                            self.getAllOwners('AfterGetAllOwners', afterExecuteOwnersMethod);
+                        }
+                        $('#divAddRealestate').modal('hide');
+                        $('#divAllOwners').modal('show');
+                    }
+                    self.imgDeleteSelectedOwner_Click = function (row) {
+                        if (row.ID > 0) {
+                            self.deletedOwnersIdList.push(row.ID);
+                        }
+                        self.selectedOwnersList.remove(row);
+                    }
+                    self.SaveRealestateChange_Click = function () {
+                        debugger;
+                        var flag = true;
+                        error = '';
+                        if (self.selectedOwnersList().length == 0) {
+                            flag = false;
+                            error += 'مالک ملک مشخص نشده است !';
+                        }
+                        var ar = parseFloat(self.Area());
+                        if (ar == 'NaN') {
+                            falg = false;
+                            error += 'متراژ معتبر نمی باشد !';
+                        }
+                        if (flag) {
+                            var r = {
+                                ID: self.selectedID(),
+                                RegisterPlak: self.RegisterPlak(),
+                                Title: self.Title(),
+                                Address: self.Address(),
+                                Area: ar,
+                                IsNorth: self.isNorth(),
+                            }
+                            $.ajax({
+                                type: "POST",
+                                async: true,
+                                contentType: 'application/json; charset=utf-8',
+                                url: '/Home/SaveRealestateChanges',
+                                data: ko.toJSON({
+                                    objRealestate: r,
+                                    lstOwners: self.selectedOwnersList(),
+                                    lstdeletedowners: self.deletedOwnersIdList()
+                                }),
+                                success: function (rs) {
+                                    if (rs.success) {
+                                        alert('ثبت با موفقیت انجام شد !');
+                                        self.RealestatePageIndex(1);
+                                        self.getAllRealestates('afterGetAllRealestate', afterExecuteMainPageMethod);
+                                        $('#divAddRealestate').modal('hide');
+                                    }
+                                    else {
+                                        alert(rs.err);
+                                    }
+                                },
+                                error: function (jqXHR, textStatus, errorThrown) {
+                                    alert('خطا در فراخوانی متد متد ملک !');
+                                }
+                            })
+                        }
+                        else {
+                            self.errorText(error);
+                            self.errorDiv(true);
+                        }
+                    }
+                }
+                /*======AllOwner============================*/
+                {
+                    self.isFirstCallAllOwner = ko.observable(true);
+                    self.ownerPageSize = ko.observable(3);
+                    self.ownerPageIndex = ko.observable(1);
+                    self.ownerPageNumberList = ko.observableArray([]);
+                    self.AllOwners = ko.observableArray([]);
+                    self.btnCloseAllOwnersDiv_Click = function () {
+                        $('#divAllOwners').modal('hide');
+                        $('#divAddRealestate').modal('show');
+                    }
+                    self.getAllOwners = function (keyName, backFunc) {
+                        $.ajax({
+                            type: "POST",
+                            async: true,
+                            contentType: 'application/json; charset=utf-8',
+                            url: '/Owners/GetAllOwners',
+                            data: ko.toJSON({
+                                ps: self.ownerPageSize(),
+                                px: self.ownerPageIndex(),
+                            }),
+                            success: function (rs) {
+                                debugger;
+                                backFunc({
+                                    ok: rs.successful,
+                                    key: keyName,
+                                    ownersList: rs.ownerList,
+                                    pagecount: rs.pageCount,
+                                    errorString: rs.ErrorMessage
+                                });
+                            },
+                            error: function (jqXHR, textStatus, errorThrown) {
+                                debugger;
+                                backFunc({
+                                    ok: false,
+                                    key: keyName,
+                                    ownersList: null,
+                                    pagecount: 0,
+                                    errorString: 'خطا در فراخوانی متد بدست آوردن لیست مالکان موجود!'
+                                });
+                            }
+                        })
+                    }
+                    self.selectOwner_Click = function (row) {
+                        var isExist = false;
+                        $.each(self.selectedOwnersList(), function (index, value) {
+                            if (row.ID == value.OwnerID) {
+                                isExist = true;
+                            }
+                        });
+                        if (isExist)
+                            alert('مالک قبلا به لیست افزوده شده است !');
+                        else {
+                            var so = {
+                                ID: 0,
+                                FirstName: row.FirstName,
+                                LastName: row.LastName,
+                                Tel: row.Tel,
+                                Address: row.Address,
+                                OwnerID: row.ID,
+                                RealestateID: self.selectedID()
+                            }
+                            self.selectedOwnersList.push(so);
+                        }
+
+                        $('#divAllOwners').modal('hide');
+                        $('#divAddRealestate').modal('show');
+                    }
+                    self.ownerPageIndexChanged = function (row) {
+                        self.ownerPageIndex(row);
+                        self.getAllOwners('AfterGetAllOwners', afterExecuteOwnersMethod);
+                    }
+
+                    function afterExecuteOwnersMethod(data) {
+                        switch (data.key) {
+                            case 'AfterGetAllOwners':
+                                self.ownerPageNumberList([]);
+                                self.AllOwners([]);
+                                if (data.ok) {
+                                    self.AllOwners(data.ownersList);
+                                    if (data.pagecount > 0) {
+                                        for (var i = 1; i <= data.pagecount; i++) {
+                                            self.ownerPageNumberList.push(i);
+                                        }
+                                    }
+                                    self.isFirstCallAllOwner(false);
+                                }
+                                else {
+                                    alert(data.errorString);
+                                    self.isFirstCallAllOwner(true);
+                                }
+                                break;
+                        }
+                    }
+                }
+                /*======Page Load============================*/
+                self.pageLoad = function () {
+                    self.getAllRealestates('afterGetAllRealestate', afterExecuteMainPageMethod);
+                }
+                self.pageLoad();
+            }
+            TotalViewModel.DetailViewModel(vm);
+            ko.applyBindings(TotalViewModel);
+        })
+    } catch (error) {
+        alert(error.message);
+    }
+
+</script>
+<div data-bind="with: TotalViewModel.DetailViewModel">
+
+    <div class="alert alert-info">
+        <table style="width: 100%;">
+            <tr>
+                <td style="width: 80%;">
+                    <span>لطفا جهت افزودن دارایی جدید از دکمه روبرو استفاده نمایید .</span>
+                </td>
+                <td style="width: 19%; text-align:end; ">
+                    <input id="btn_AddRealestate" type="button" value="افزودن ملک جدید" data-bind="click: addRealestate_Click" class="btn btn-info" style="width: 140px;" />
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <div id="lstAllRealestates" data-bind="visible: (RealestateList().length > 0 )">
+                    <table class="table table-striped" style="text-align:center; font-size: 12px;">
+                        <thead style="background-color: #b0c7db;">
+                            <tr style="height: 35px;">
+                                <td>
+                                    <span>شناسه</span>
+                                </td>
+                                <td>
+                                    <span>پلاک ثبتی</span>
+                                </td>
+                                <td>
+                                    <span>محل مشهور</span>
+                                </td>
+                                <td>
+                                    <span>آدرس</span>
+                                </td>
+                                <td>
+                                    <span>متراژ</span>
+                                </td>
+                                <td>
+                                    <span>شمالی </span>
+                                </td>
+                                <td>
+                                    <span>&nbsp;&nbsp;</span>
+                                </td>
+                                <td>
+                                    <span>&nbsp;&nbsp;</span>
+                                </td>
+                            </tr>
+                        </thead>
+                        <tbody data-bind="foreach: RealestateList">
+                            <tr>
+                                <td>
+                                    <span data-bind="text: ID"></span>
+                                </td>
+                                <td>
+                                    <span data-bind="text: RegisterPlak"></span>
+                                </td>
+                                <td>
+                                    <span data-bind="text: Title"></span>
+                                </td>
+                                <td>
+                                    <span data-bind="text: Address"></span>
+                                </td>
+                                <td>
+                                    <span data-bind="text: Area"></span>
+                                </td>
+                                <td>
+                                    <input type="checkbox" disabled="disabled" data-bind="attr:{id: 'chk_'+ ID}, checked: IsNorth" />
+                                </td>
+                                <td>
+                                    <img src="~/Images/Edit.gif" alt="" data-bind="attr:{id: 'EditRealestate' + ID}, event:{click: imgEditRealestate_Click}" tooltip="ویرایش" />
+                                </td>
+                                <td>
+                                    <img src="~/Images/Close.png" alt="" data-bind="attr:{id: 'DeleteRealestate' + ID}, event:{click: imgDeleteRealestate_Click}" tooltip="حذف" />
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="8" style="text-align: right;">
+                                    <span data-bind="text: RealestateCount"></span>
+                                </td>
+                            </tr>
+                            <tr class="pgr" style="background-color: #f7dfbf;" data-bind="visible: (RealestatePageNumberList().length > 0) ">
+                                <td colspan="8" style="width: 100%; padding-top: 3px; text-align: end;">
+                                    <div data-bind="foreach: RealestatePageNumberList ">
+                                        <input type="button"
+                                               style="border: none; padding-top: 5px; padding-bottom: 5px; cursor: pointer;"
+                                               data-bind="value: $data, event: { click: RealestatePageIndex_Changed},
+    style:
+    {
+        color: RealestatePageIndex() != $data ? 'darkslategrey' : 'white',
+        backgroundColor: RealestatePageIndex() != $data ? 'transparent' : '#7fab90',
+        paddingRight: RealestatePageIndex() != $data ? '5px' : '10px',
+        paddingLeft: RealestatePageIndex() != $data ? '5px' : '10px',
+        borderRadius: RealestatePageIndex() != $data ? '0%' : '50%'
+    }" />&nbsp;&nbsp;
+                                        <span style="font-size: 9px;">|</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div id="lstEmptyRealestates" data-bind="visible: (RealestateList().length == 0)"
+                     style="border: 1px solid red;padding: 5px;text-align: center;border-radius: 5px;">
+                    دارایی ثبت نشده است !
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="divAddRealestate" class="modal fade">
+        <div class="modal-dialog" style="width: 60%;">
+            <div class="modal-content">
+                <div class="modal-header" style="text-align:center; background-color:#8abf8a; ">
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="width: 90%; text-align: right;"><span>ثبت ملک</span></td>
+                            <td style="width: 10%; text-align: end;">
+                                <button type="button" style=" background-color: transparent;" data-dismiss="modal">X</button>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="modal-body" style="font-size: 12px;">
+                    <div>
+                        <table class="table table-hover">
+                            <tr>
+                                <td width="15%;">
+                                    <span>پلاک ثبتی :</span>
+                                </td>
+                                <td width="33%;">
+                                    <input id="txtRegisterPlak" type="text" data-bind="textInput: RegisterPlak" class="form-control" />
+                                </td>
+                                <td width="15%;">
+                                    <span>متراژ</span>
+                                </td>
+                                <td width="33%;">
+                                    <input id="txtArea" type="text" data-bind="textInput: Area" class="form-control" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td width="15%;">
+                                    <span>محل مشهور :</span>
+                                </td>
+                                <td width="33%;">
+                                    <input id="txtTitle" type="text" data-bind="textInput: Title" class="form-control" />
+                                </td>
+
+                                <td width="15%;">
+                                    <span>آیا ملک شمالی است ؟</span>
+                                </td>
+                                <td width="33%;">
+                                    <input id="chkIsNorth" type="checkbox" data-bind="checked: isNorth" class="checkbox" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td width="15%;">
+                                    <span>آدرس :</span>
+                                </td>
+                                <td colspan="3" style="width:80%;">
+                                    <input id="txtAddress" type="text" data-bind="textInput: Address" style="width: 100%;" class="form-control" />
+                                </td>
+                            </tr>
+                        </table>
+                        <table style="width: 100%;">
+                            <tr>
+                                <td>
+                                    <div class="alert alert-info" style="padding: 7px !important;">
+                                        <table style="width: 100%;">
+                                            <tr>
+                                                <td style="width: 80%;">
+                                                    <span>جهت تعیین مالک ، دکمه " تعیین مالک" را کلیک نمایید .</span>
+                                                </td>
+                                                <td style="width: 19%; text-align:end; ">
+                                                    <input id="btnAddOwner" type="button" class="btn btn-info" style="padding: 5px !important; width: 150px; font-size: 12px !important;" value="تعیین مالک" data-bind="click: btnAddOwner_Click" />
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="width: 50%;">
+                                    <div id="divSelectedOwners" data-bind="visible: (selectedOwnersList().length > 0 )" class="table" style="text-align:center;">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th style="text-align: center; width: 30%;">نام و نام خانوادگی</th>
+                                                    <th style="text-align: center; width: 20%;">تلفن</th>
+                                                    <th style="text-align: center; width: 40%;">آدرس</th>
+                                                    <th style="text-align: center; width: 10%;">&nbsp;</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody data-bind="foreach: selectedOwnersList">
+                                                <tr>
+                                                    <td style="text-align: center; width: 30%;">
+                                                        <span data-bind="text: FirstName + ' ' + LastName"></span>
+                                                    </td>
+                                                    <td style="text-align: center; width: 20%;">
+                                                        <span data-bind="text: Tel"></span>
+                                                    </td>
+                                                    <td style="text-align: center; width: 40%;">
+                                                        <span data-bind="text: Address"></span>
+                                                    </td>
+                                                    <td style="text-align: center; width: 10%;">
+                                                        <img src="~/Images/Close.png" alt="" data-bind="attr:{id: 'imgRemove_'+ ID}, event:{click: imgDeleteSelectedOwner_Click}" />
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div id="divEmptySelectedOwnersList" data-bind="visible: (selectedOwnersList().length == 0 )"
+                                         style="border: 1px solid red;padding: 5px;text-align: center;border-radius: 5px;">
+                                        <span>ملک فاقد مالک می باشد  !</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="width: 60%;">
+                                <div class="alert alert-danger" data-bind="visible: errorDiv">
+                                    <span data-bind="text: errorText"></span>
+                                </div>
+                            </td>
+                            <td style="width: 40%; text-align: end">
+                                <input id="btnSave" value="ثبت " class="btn btn-success" style="width: 150px;" data-bind="click: SaveRealestateChange_Click" />
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="divAllOwners" class="modal fade">
+        <div class="modal-dialog" style="width: 50%;">
+            <div class="modal-content">
+                <div class="modal-header" style="text-align: center; background-color: #8abf8a;">
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="width: 90%; text-align: right;"><span>لیست مالکان موجود</span></td>
+                            <td style="width: 10%; text-align: end;">
+                                <button id="btnCloseAllOwnersDiv" style="border: none; background-color: transparent; font-size: 12px;" 
+                                        data-bind="click: btnCloseAllOwnersDiv_Click">X</button>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="modal-body">
+                    <div id="divAllOwners" data-bind="visible: (AllOwners().length > 0 )" class="table" style="text-align:center;">
+                        <table class="table table-striped" style="font-size: 12px;">
+                            <thead>
+                                <tr style="background-color:aliceblue;">
+                                    <th style="text-align:center; width: 20%;">نام و نام خانوادگی</th>
+                                    <th style="text-align:center; width: 20%;">تلفن</th>
+                                    <th style="text-align:center; width: 50%;">آدرس</th>
+                                    <th style="width: 10%;">&nbsp;</th>
+                                </tr>
+                            </thead>
+                            <tbody data-bind="foreach: AllOwners">
+                                <tr>
+                                    <td style="text-align:center; width: 20%;">
+                                        <span data-bind="text: FirstName + ' ' + LastName"></span>
+                                    </td>
+                                    <td style="text-align:center; width: 20%;">
+                                        <span data-bind="text: Tel"></span>
+                                    </td>
+                                    <td style="text-align:center; width: 40%;">
+                                        <span data-bind="text: Address"></span>
+                                    </td>
+                                    <td style="text-align:center; width: 10%;">
+                                        <img src="~/Images/ok.png" alt="" data-bind="click: selectOwner_Click" />
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr class="pgr" data-bind="visible: (ownerPageNumberList().length > 0) ">
+                                    <td colspan="8" style="width: 100%; padding-top: 3px;">
+                                        <div data-bind="foreach: ownerPageNumberList ">
+                                            <input type="button"
+                                                   style="border: none; padding-top: 5px; padding-bottom: 5px; cursor: pointer;"
+                                                   data-bind="value: $data, event: { click: ownerPageIndexChanged},
+    style:
+    {
+        color: ownerPageIndex() != $data ? 'darkslategrey' : 'white',
+        backgroundColor: ownerPageIndex() != $data ? 'transparent' : '#7fab90',
+        paddingRight: ownerPageIndex() != $data ? '5px' : '10px',
+        paddingLeft: ownerPageIndex() != $data ? '5px' : '10px',
+        borderRadius: ownerPageIndex() != $data ? '0%' : '50%'
+    }" />&nbsp;&nbsp;
+                                            <span style="font-size: 9px;">|</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <div id="divEmptyOwnersList" data-bind="visible: (AllOwners().length == 0 )"
+                         style="border: 1px solid red;padding: 5px;text-align: center;border-radius: 5px;">
+                        <span>مالکی یافت نشد !</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+

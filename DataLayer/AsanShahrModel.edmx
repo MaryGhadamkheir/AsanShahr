@@ -1,0 +1,268 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="AsanShahrDBModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="Owners">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="FirstName" Type="nvarchar" MaxLength="150" Nullable="false" />
+          <Property Name="LastName" Type="nvarchar" MaxLength="150" Nullable="false" />
+          <Property Name="Tel" Type="varchar" MaxLength="50" />
+          <Property Name="Address" Type="nvarchar" MaxLength="500" />
+        </EntityType>
+        <EntityType Name="RealestateOwners">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RealestateID" Type="bigint" Nullable="false" />
+          <Property Name="OwnerID" Type="bigint" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Realestates">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RegisterPlak" Type="varchar" MaxLength="100" Nullable="false" />
+          <Property Name="Title" Type="nvarchar" MaxLength="250" Nullable="false" />
+          <Property Name="Address" Type="nvarchar" MaxLength="500" Nullable="false" />
+          <Property Name="Area" Type="float" Nullable="false" />
+          <Property Name="IsNorth" Type="bit" Nullable="false" />
+        </EntityType>
+        <!--Errors Found During Generation:
+warning 6002: The table/view 'AsanShahrDB.dbo.vwRealestateOwners' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
+        <EntityType Name="vwRealestateOwners">
+          <Key>
+            <PropertyRef Name="FirstName" />
+            <PropertyRef Name="LastName" />
+            <PropertyRef Name="OwnerID" />
+            <PropertyRef Name="RealestateID" />
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="FirstName" Type="nvarchar" MaxLength="150" Nullable="false" />
+          <Property Name="LastName" Type="nvarchar" MaxLength="150" Nullable="false" />
+          <Property Name="Tel" Type="varchar" MaxLength="50" />
+          <Property Name="Address" Type="nvarchar" MaxLength="500" />
+          <Property Name="OwnerID" Type="bigint" Nullable="false" />
+          <Property Name="RealestateID" Type="bigint" Nullable="false" />
+          <Property Name="ID" Type="bigint" Nullable="false" />
+        </EntityType>
+        <Association Name="FK_RealestateOwners_Owners">
+          <End Role="Owners" Type="Self.Owners" Multiplicity="1" />
+          <End Role="RealestateOwners" Type="Self.RealestateOwners" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Owners">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="RealestateOwners">
+              <PropertyRef Name="OwnerID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RealestateOwners_Realestates">
+          <End Role="Realestates" Type="Self.Realestates" Multiplicity="1" />
+          <End Role="RealestateOwners" Type="Self.RealestateOwners" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Realestates">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="RealestateOwners">
+              <PropertyRef Name="RealestateID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="AsanShahrDBModelStoreContainer">
+          <EntitySet Name="Owners" EntityType="Self.Owners" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="RealestateOwners" EntityType="Self.RealestateOwners" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Realestates" EntityType="Self.Realestates" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="vwRealestateOwners" EntityType="Self.vwRealestateOwners" store:Type="Views" store:Schema="dbo">
+            <DefiningQuery>SELECT 
+    [vwRealestateOwners].[FirstName] AS [FirstName], 
+    [vwRealestateOwners].[LastName] AS [LastName], 
+    [vwRealestateOwners].[Tel] AS [Tel], 
+    [vwRealestateOwners].[Address] AS [Address], 
+    [vwRealestateOwners].[OwnerID] AS [OwnerID], 
+    [vwRealestateOwners].[RealestateID] AS [RealestateID], 
+    [vwRealestateOwners].[ID] AS [ID]
+    FROM [dbo].[vwRealestateOwners] AS [vwRealestateOwners]</DefiningQuery>
+          </EntitySet>
+          <AssociationSet Name="FK_RealestateOwners_Owners" Association="Self.FK_RealestateOwners_Owners">
+            <End Role="Owners" EntitySet="Owners" />
+            <End Role="RealestateOwners" EntitySet="RealestateOwners" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RealestateOwners_Realestates" Association="Self.FK_RealestateOwners_Realestates">
+            <End Role="Realestates" EntitySet="Realestates" />
+            <End Role="RealestateOwners" EntitySet="RealestateOwners" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="AsanShahrDBModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="Owners">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="FirstName" Type="String" MaxLength="150" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="LastName" Type="String" MaxLength="150" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Tel" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Address" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="RealestateOwners" Relationship="Self.FK_RealestateOwners_Owners" FromRole="Owners" ToRole="RealestateOwners" />
+        </EntityType>
+        <EntityType Name="RealestateOwners">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="RealestateID" Type="Int64" Nullable="false" />
+          <Property Name="OwnerID" Type="Int64" Nullable="false" />
+          <NavigationProperty Name="Owners" Relationship="Self.FK_RealestateOwners_Owners" FromRole="RealestateOwners" ToRole="Owners" />
+          <NavigationProperty Name="Realestates" Relationship="Self.FK_RealestateOwners_Realestates" FromRole="RealestateOwners" ToRole="Realestates" />
+        </EntityType>
+        <EntityType Name="Realestates">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="RegisterPlak" Type="String" MaxLength="100" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Title" Type="String" MaxLength="250" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Address" Type="String" MaxLength="500" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="Area" Type="Double" Nullable="false" />
+          <Property Name="IsNorth" Type="Boolean" Nullable="false" />
+          <NavigationProperty Name="RealestateOwners" Relationship="Self.FK_RealestateOwners_Realestates" FromRole="Realestates" ToRole="RealestateOwners" />
+        </EntityType>
+        <Association Name="FK_RealestateOwners_Owners">
+          <End Role="Owners" Type="Self.Owners" Multiplicity="1" />
+          <End Role="RealestateOwners" Type="Self.RealestateOwners" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Owners">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="RealestateOwners">
+              <PropertyRef Name="OwnerID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_RealestateOwners_Realestates">
+          <End Role="Realestates" Type="Self.Realestates" Multiplicity="1" />
+          <End Role="RealestateOwners" Type="Self.RealestateOwners" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Realestates">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="RealestateOwners">
+              <PropertyRef Name="RealestateID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="AsanShahrDBEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="Owners" EntityType="Self.Owners" />
+          <EntitySet Name="RealestateOwners" EntityType="Self.RealestateOwners" />
+          <EntitySet Name="Realestates" EntityType="Self.Realestates" />
+          <AssociationSet Name="FK_RealestateOwners_Owners" Association="Self.FK_RealestateOwners_Owners">
+            <End Role="Owners" EntitySet="Owners" />
+            <End Role="RealestateOwners" EntitySet="RealestateOwners" />
+          </AssociationSet>
+          <AssociationSet Name="FK_RealestateOwners_Realestates" Association="Self.FK_RealestateOwners_Realestates">
+            <End Role="Realestates" EntitySet="Realestates" />
+            <End Role="RealestateOwners" EntitySet="RealestateOwners" />
+          </AssociationSet>
+          <EntitySet Name="vwRealestateOwners" EntityType="AsanShahrDBModel.vwRealestateOwners" />
+        </EntityContainer>
+        <EntityType Name="vwRealestateOwners">
+          <Key>
+            <PropertyRef Name="FirstName" />
+            <PropertyRef Name="LastName" />
+            <PropertyRef Name="OwnerID" />
+            <PropertyRef Name="RealestateID" />
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="FirstName" Type="String" Nullable="false" MaxLength="150" FixedLength="false" Unicode="true" />
+          <Property Name="LastName" Type="String" Nullable="false" MaxLength="150" FixedLength="false" Unicode="true" />
+          <Property Name="Tel" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="Address" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="OwnerID" Type="Int64" Nullable="false" />
+          <Property Name="RealestateID" Type="Int64" Nullable="false" />
+          <Property Name="ID" Type="Int64" Nullable="false" />
+        </EntityType>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="AsanShahrDBModelStoreContainer" CdmEntityContainer="AsanShahrDBEntities">
+          <EntitySetMapping Name="Owners">
+            <EntityTypeMapping TypeName="AsanShahrDBModel.Owners">
+              <MappingFragment StoreEntitySet="Owners">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+                <ScalarProperty Name="LastName" ColumnName="LastName" />
+                <ScalarProperty Name="Tel" ColumnName="Tel" />
+                <ScalarProperty Name="Address" ColumnName="Address" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="RealestateOwners">
+            <EntityTypeMapping TypeName="AsanShahrDBModel.RealestateOwners">
+              <MappingFragment StoreEntitySet="RealestateOwners">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="RealestateID" ColumnName="RealestateID" />
+                <ScalarProperty Name="OwnerID" ColumnName="OwnerID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Realestates">
+            <EntityTypeMapping TypeName="AsanShahrDBModel.Realestates">
+              <MappingFragment StoreEntitySet="Realestates">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="RegisterPlak" ColumnName="RegisterPlak" />
+                <ScalarProperty Name="Title" ColumnName="Title" />
+                <ScalarProperty Name="Address" ColumnName="Address" />
+                <ScalarProperty Name="Area" ColumnName="Area" />
+                <ScalarProperty Name="IsNorth" ColumnName="IsNorth" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="vwRealestateOwners">
+            <EntityTypeMapping TypeName="AsanShahrDBModel.vwRealestateOwners">
+              <MappingFragment StoreEntitySet="vwRealestateOwners">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="RealestateID" ColumnName="RealestateID" />
+                <ScalarProperty Name="OwnerID" ColumnName="OwnerID" />
+                <ScalarProperty Name="Address" ColumnName="Address" />
+                <ScalarProperty Name="Tel" ColumnName="Tel" />
+                <ScalarProperty Name="LastName" ColumnName="LastName" />
+                <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="false" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>
